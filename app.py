@@ -86,8 +86,9 @@ with tab1:
             AllChem.UFFOptimizeMolecule(mol, maxIters=1000)
                 
             x = torch.tensor([get_unified_features(a) for a in mol.GetAtoms()], dtype=torch.float).to(device)
-                edges, dists = [], []
-                conf = mol.GetConformer()
+                
+            edges, dists = [], []
+            conf = mol.GetConformer()
                 for bond in mol.GetBonds():
                     i, j = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
                     d = conf.GetAtomPosition(i).Distance(conf.GetAtomPosition(j))
