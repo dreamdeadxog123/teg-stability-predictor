@@ -64,7 +64,7 @@ st.title("🧪 TEG Discovery & Training Studio")
 tab1, tab2 = st.tabs(["🧪 Predict Stability", "⚙️ Train the AI"])
 
 # ==========================================
-# TAB 1: PREDICTION (Your existing code)
+# TAB 1: PREDICTION
 # ==========================================
 with tab1:
     st.markdown("Enter the SMILES string of a hypothetical organic semiconductor.")
@@ -74,27 +74,28 @@ with tab1:
         # 1. LOCK THE AI BRAIN
         torch.manual_seed(42)
         model.eval() 
-    
+        
         with st.spinner("Calculating quantum spatial features..."):
-        mol = Chem.MolFromSmiles(user_smiles)
-        if not mol:
-            st.error("Invalid SMILES string.")
-        else:
-            mol = Chem.AddHs(mol)
-            # 2. LOCK THE 3D GEOMETRY
-            AllChem.EmbedMolecule(mol, randomSeed=42, useRandomCoords=True)
-            AllChem.UFFOptimizeMolecule(mol, maxIters=1000)
-                
-            x = torch.tensor([get_unified_features(a) for a in mol.GetAtoms()], dtype=torch.float).to(device)
-                
-            edges, dists = [], []
-            conf = mol.GetConformer()
-            for bond in mol.GetBonds():
-                i, j = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
-                d = conf.GetAtomPosition(i).Distance(conf.GetAtomPosition(j))
-                edges.extend([[i, j], [j, i]])
-                dists.extend([d, d])
+            mol = Chem.MolFromSmiles(user_smiles)
+            if not mol:
+                st.error("Invalid SMILES string.")
+            else:
+                mol = Chem.AddHs(mol)
+                # 2. LOCK THE 3D GEOMETRY
+                AllChem.EmbedMolecule(mol, randomSeed=42, useRandomCoords=True)
+                AllChem.UFFOptimizeMolecule(mol, maxIters=1000)
                     
+                x = torch.tensor([get_unified_features(a) for a in mol.GetAtoms()], dtype=torch.float).to(device)
+                    
+                edges, dists = [], []
+                conf = mol.GetConformer()
+                for bond in mol.GetBonds():
+                    i, j = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
+                    d = conf.GetAtomPosition(i).Distance(conf.GetAtomPosition(j))
+                    edges.extend([[i, j], [j, i]])
+                    dists.extend([d, d])
+                        
+                # 3. FIXED INDENTATION: Pulled out of the for loop!
                 edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous().to(device)
                 edge_attr = torch.tensor(dists, dtype=torch.float).to(device)
                 batch = torch.zeros(mol.GetNumAtoms(), dtype=torch.long).to(device)
@@ -114,7 +115,7 @@ with tab1:
                     st.error("❌ UNSTABLE P-TYPE/DONOR.")
 
 # ==========================================
-# TAB 2: THE TRAINING DASHBOARD (New!)
+# TAB 2: THE TRAINING DASHBOARD
 # ==========================================
 with tab2:
     st.markdown("### Fine-Tune on Custom Data")
@@ -206,3 +207,4 @@ with tab2:
                 file_name="upgraded_n_type_expert.pth",
                 mime="application/octet-stream"
             )
+            
