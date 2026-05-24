@@ -71,14 +71,19 @@ with tab1:
     user_smiles = st.text_input("Enter Molecule SMILES:", "N#CC(C#N)=C1C=CC(=C(C#N)C#N)C=C1")
 
     if st.button("Predict Stability", type="primary"):
-        with st.spinner("Calculating quantum spatial features..."):
-            mol = Chem.MolFromSmiles(user_smiles)
-            if not mol:
-                st.error("Invalid SMILES string.")
-            else:
-                mol = Chem.AddHs(mol)
-                AllChem.EmbedMolecule(mol, randomSeed=42)
-                AllChem.UFFOptimizeMolecule(mol)
+    # 1. LOCK THE AI BRAIN
+    torch.manual_seed(42)
+    model.eval() 
+    
+    with st.spinner("Calculating quantum spatial features..."):
+        mol = Chem.MolFromSmiles(user_smiles)
+        if not mol:
+            st.error("Invalid SMILES string.")
+        else:
+            mol = Chem.AddHs(mol)
+            # 2. LOCK THE 3D GEOMETRY
+            AllChem.EmbedMolecule(mol, randomSeed=42, useRandomCoords=True)
+            AllChem.UFFOptimizeMolecule(mol, maxIters=1000)
                 
                 x = torch.tensor([get_unified_features(a) for a in mol.GetAtoms()], dtype=torch.float).to(device)
                 edges, dists = [], []
