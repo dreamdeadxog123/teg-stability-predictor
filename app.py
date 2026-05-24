@@ -85,7 +85,7 @@ with tab1:
             AllChem.EmbedMolecule(mol, randomSeed=42, useRandomCoords=True)
             AllChem.UFFOptimizeMolecule(mol, maxIters=1000)
                 
-                x = torch.tensor([get_unified_features(a) for a in mol.GetAtoms()], dtype=torch.float).to(device)
+            x = torch.tensor([get_unified_features(a) for a in mol.GetAtoms()], dtype=torch.float).to(device)
                 edges, dists = [], []
                 conf = mol.GetConformer()
                 for bond in mol.GetBonds():
